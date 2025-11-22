@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:album_biblio/views/perfil_usuario.dart'; 
+// Importamos la nueva pantalla de álbum
+import 'package:album_biblio/views/album_vista.dart'; 
+// Importamos el modelo de datos
+import 'package:album_biblio/album.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -10,16 +13,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Crear un objeto Album con los datos de ejemplo del profesor (OK Computer)
+    final Album albumEjemplo = Album.porDefecto();
+
     return MaterialApp(
-      title: 'Album Biblio', // Título que aparece en la barra de tareas.
+      title: 'Album Biblio',
       theme: ThemeData(
-        // Puedes cambiar el tema aquí. Usaremos el tema base.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         useMaterial3: true,
       ),
-      // home: Define la primera pantalla que se muestra.
-      // Aquí usamos nuestro nuevo widget PerfilUsuario.
-      home: const PerfilUsuario(),
+      // 2. Usar AlbumVista como home, pasándole el objeto creado
+      home: AlbumVista(album: albumEjemplo),
     );
   }
 }
