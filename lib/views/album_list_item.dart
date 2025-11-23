@@ -2,18 +2,21 @@
 
 import 'package:flutter/material.dart';
 import 'package:album_biblio/album.dart';
-import 'package:album_biblio/views/album_vista.dart'; 
-import 'package:album_biblio/views/confirmacion_vista.dart'; // <--- NUEVA IMPORTACIÓN
+import 'package:album_biblio/views/album_vista.dart';
+import 'package:album_biblio/views/confirmacion_vista.dart';
 
 // Widget para representar una sola fila en la lista
 class AlbumListItem extends StatelessWidget {
   final Album album;
   final int index;
+  // 1. Declaración del callback
+  final void Function(Album) onDelete; // Función que recibe un Album y no devuelve nada
 
   const AlbumListItem({
     super.key,
     required this.album,
     required this.index,
+    required this.onDelete, // 2. Inclusión en el constructor
   });
 
   @override
@@ -41,7 +44,7 @@ class AlbumListItem extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            // Botón 1: Ver detalles del álbum (Ejercicio 15)
+            // Botón 1: Ver detalles del álbum
             IconButton(
               icon: const Icon(Icons.info),
               onPressed: () {
@@ -64,11 +67,10 @@ class AlbumListItem extends StatelessWidget {
               color: Colors.orange,
             ),
             
-            // Botón 3: Eliminar álbum (Ejercicio 16)
+            // Botón 3: Eliminar álbum (Implementación real)
             IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: () async { // <--- FUNCIÓN ASÍNCRONA
-                // 1. Navegamos a la vista de confirmación y ESPERAMOS el resultado
+              onPressed: () async {
                 final resultado = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -76,9 +78,11 @@ class AlbumListItem extends StatelessWidget {
                   ),
                 );
                 
-                // 2. Verificamos el resultado devuelto (true para confirmar, false para cancelar)
                 if (resultado == true) {
-                  // Muestra el mensaje "toast" (SnackBar) para eliminación confirmada
+                  // Si el usuario confirma, llamamos al callback
+                  onDelete(album); 
+                  
+                  // Mostramos el mensaje de éxito
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Álbum "${album.titulo}" ELIMINADO exitosamente.'),
@@ -87,7 +91,7 @@ class AlbumListItem extends StatelessWidget {
                     ),
                   );
                 } else if (resultado == false) {
-                  // Muestra el mensaje "toast" (SnackBar) para eliminación cancelada
+                  // El usuario canceló la eliminación
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Eliminación del álbum "${album.titulo}" CANCELADA.'),

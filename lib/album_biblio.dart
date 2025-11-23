@@ -91,6 +91,17 @@ class AlbumBiblio {
     _listaAlbumes.add(album);
     _writeAlbumes();
   }
+
+  // NUEVO MÉTODO: Remueve un álbum y guarda la lista
+  void removeAlbum(Album album) {
+    // Es mejor usar removeWhere con múltiples campos, ya que Album no tiene un ID único.
+    _listaAlbumes.removeWhere((a) => 
+        a.titulo == album.titulo && 
+        a.cantante == album.cantante && 
+        a.anio == album.anio
+    );
+    _writeAlbumes(); // Guarda los cambios inmediatamente después de eliminar
+  }
   
   // Método para cargar datos al inicio (usado por AlbumList)
   Future<void> loadAlbumes() async {
