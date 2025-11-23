@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:album_biblio/album_biblio.dart';
 import 'package:album_biblio/views/album_list_item.dart';
-// 1. Importamos la vista a la que vamos a navegar
-import 'package:album_biblio/views/perfil_usuario.dart'; 
+import 'package:album_biblio/views/perfil_usuario.dart';
+import 'package:album_biblio/views/acerca_de_vista.dart'; // <--- NUEVA IMPORTACIÓN
 
-// 2. Enum para las opciones del menú emergente
+// Enum para las opciones del menú emergente
 enum MenuOptions {
   profile,
   about,
@@ -28,21 +28,26 @@ class AlbumList extends StatelessWidget {
         
         // 3. Bloque actions: Aquí va el botón del menú
         actions: <Widget>[
-          // PopupMenuButton crea el botón de los 3 puntos
           PopupMenuButton<MenuOptions>(
             // onSelected: Se llama al elegir una opción
             onSelected: (MenuOptions result) {
               if (result == MenuOptions.profile) {
-                // Lógica de navegación a la pantalla PerfilUsuario
+                // Navegación a Perfil del usuario
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    // builder define la pantalla de destino
                     builder: (context) => const PerfilUsuario(),
                   ),
                 );
+              } else if (result == MenuOptions.about) {
+                // LÓGICA DE NAVEGACIÓN A "ACERCA DE..."
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AcercaDeVista(),
+                  ),
+                );
               }
-              // El else if para 'about' se puede dejar vacío por ahora
             },
             
             // itemBuilder: Define las opciones del menú
@@ -53,7 +58,7 @@ class AlbumList extends StatelessWidget {
               ),
               const PopupMenuItem<MenuOptions>(
                 value: MenuOptions.about,
-                child: Text('Acerca de'), // Placeholder para actividad complementaria
+                child: Text('Acerca de'),
               ),
             ],
           ),
