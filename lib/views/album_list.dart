@@ -6,7 +6,7 @@ import 'package:album_biblio/album_biblio.dart';
 import 'package:album_biblio/views/album_list_item.dart';
 import 'package:album_biblio/views/perfil_usuario.dart';
 import 'package:album_biblio/views/acerca_de_vista.dart';
-import 'package:album_biblio/views/album_form.dart'; // Importación del formulario
+import 'package:album_biblio/views/album_form.dart'; 
 
 // Enum para las opciones del menú emergente
 enum MenuOptions {
@@ -23,13 +23,9 @@ class AlbumList extends StatefulWidget {
 }
 
 class _AlbumListState extends State<AlbumList> {
-  // Mover la biblioteca al estado
   final AlbumBiblio biblioteca = AlbumBiblio(); 
-  
-  // Variable para almacenar el Future de la carga de datos
   late Future<void> _loadFuture;
 
-  // Inicializar la data llamando a loadAlbumes
   @override
   void initState() {
     super.initState();
@@ -38,11 +34,9 @@ class _AlbumListState extends State<AlbumList> {
   
   // Función asíncrona que gestiona la carga inicial de datos
   Future<void> _initializeData() async {
-    // 1. Carga los datos existentes del archivo JSON
     await biblioteca.loadAlbumes(); 
 
-    // 2. Si la lista está vacía (es la primera vez que se ejecuta), 
-    //    añade algunos datos de demostración y los guarda.
+    // Si la lista está vacía, añade datos de demostración y los guarda.
     if (biblioteca.albumes.isEmpty) {
       biblioteca.addAlbum(Album.porDefecto()); 
       biblioteca.addAlbum(
@@ -71,19 +65,20 @@ class _AlbumListState extends State<AlbumList> {
     }
   }
 
-  // Método para abrir el formulario y agregar un álbum
+  // Método que se llamará desde el FloatingActionButton (Agregar)
   void _navigateToAddAlbum() async {
+    // Al agregar, NO pasamos albumToEdit, por lo que es null
     final newAlbum = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AlbumForm(), 
+        builder: (context) => const AlbumForm(), 
       ),
     );
 
     if (newAlbum != null && newAlbum is Album) {
-      // Usar setState para actualizar la lista después de la adición
+      // Es una adición
       setState(() {
-        biblioteca.addAlbum(newAlbum); // addAlbum llama a _writeAlbumes()
+        biblioteca.addAlbum(newAlbum); 
       });
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,6 +91,13 @@ class _AlbumListState extends State<AlbumList> {
     }
   }
   
+  // NUEVA FUNCIÓN: Maneja el resultado de la edición
+  void _handleAlbumEdit(Album originalAlbum, Album editedAlbum) {
+    setState(() {
+      biblioteca.updateAlbum(originalAlbum, editedAlbum);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,32 +121,29 @@ class _AlbumListState extends State<AlbumList> {
         ],
       ),
       
-      // USO DE FUTUREBUILDER PARA MANEJAR LA CARGA DE DATOS
       body: FutureBuilder<void>(
-        future: _loadFuture, // Esperamos que la inicialización termine
+        future: _loadFuture,
         builder: (context, snapshot) {
-          // Muestra indicador de carga
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            // Manejo de errores
             return Center(child: Text('Error al cargar datos: ${snapshot.error}'));
           } else {
-            // Si la carga ha terminado (ConnectionState.done)
             return ListView.builder(
               itemCount: biblioteca.albumes.length, 
               itemBuilder: (BuildContext context, int index) {
+                final album = biblioteca.albumes[index];
                 return AlbumListItem(
-                  album: biblioteca.albumes[index],
+                  album: album,
                   index: index,
-                  // FUNCIÓN DE ELIMINACIÓN
+                  // ELIMINACIÓN (ya implementada)
                   onDelete: (albumToDelete) { 
-                    // Llamamos a setState para que el widget se redibuje 
-                    // después de que el álbum es removido.
                     setState(() { 
-                      biblioteca.removeAlbum(albumToDelete); // Llama al método que elimina y guarda en JSON
+                      biblioteca.removeAlbum(albumToDelete); 
                     });
                   },
+                  // EDICIÓN (nueva implementación)
+                  onEdit: _handleAlbumEdit, 
                 );
               },
             );

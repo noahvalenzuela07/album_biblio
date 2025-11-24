@@ -103,6 +103,23 @@ class AlbumBiblio {
     _writeAlbumes(); // Guarda los cambios inmediatamente después de eliminar
   }
   
+  // NUEVO MÉTODO: Actualiza un álbum existente
+  void updateAlbum(Album originalAlbum, Album newAlbum) {
+    // 1. Encuentra el índice del álbum original en la lista
+    final index = _listaAlbumes.indexWhere((a) => 
+        a.titulo == originalAlbum.titulo && 
+        a.cantante == originalAlbum.cantante && 
+        a.anio == originalAlbum.anio &&
+        a.genero == originalAlbum.genero
+    );
+
+    // 2. Si se encuentra, reemplaza el álbum con los nuevos datos
+    if (index != -1) {
+      _listaAlbumes[index] = newAlbum;
+      _writeAlbumes(); // Guarda la lista actualizada
+    }
+  }
+
   // Método para cargar datos al inicio (usado por AlbumList)
   Future<void> loadAlbumes() async {
     _listaAlbumes.addAll(await _readAlbumes());

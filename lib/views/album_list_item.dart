@@ -4,19 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:album_biblio/album.dart';
 import 'package:album_biblio/views/album_vista.dart';
 import 'package:album_biblio/views/confirmacion_vista.dart';
+import 'package:album_biblio/views/album_form.dart'; // <--- Importación del formulario
+
+// Definición de un callback para la edición: recibe el álbum original y el álbum editado
+typedef OnEditCallback = void Function(Album original, Album edited);
 
 // Widget para representar una sola fila en la lista
 class AlbumListItem extends StatelessWidget {
   final Album album;
   final int index;
-  // 1. Declaración del callback
-  final void Function(Album) onDelete; // Función que recibe un Album y no devuelve nada
+  final void Function(Album) onDelete; 
+  final OnEditCallback onEdit; // <--- NUEVO CALLBACK PARA EDICIÓN
 
   const AlbumListItem({
     super.key,
     required this.album,
     required this.index,
-    required this.onDelete, // 2. Inclusión en el constructor
+    required this.onDelete,
+    required this.onEdit, // <--- REQUERIDO EN EL CONSTRUCTOR
   });
 
   @override
@@ -58,16 +63,36 @@ class AlbumListItem extends StatelessWidget {
               color: Colors.blue,
             ),
             
-            // Botón 2: Editar álbum (Sin acción aún)
+            // Botón 2: Editar álbum (Implementación real)
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                debugPrint('Editar álbum: ${album.titulo}');
+              onPressed: () async {
+                // Navegamos al formulario, pasando el álbum actual para editar
+                final editedAlbum = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AlbumForm(albumToEdit: album),
+                  ),
+                );
+                
+                // Si el formulario devuelve un objeto Album (es decir, se guardó)
+                if (editedAlbum != null && editedAlbum is Album) {
+                  // Llamamos al callback para que AlbumList actualice el estado
+                  onEdit(album, editedAlbum); 
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Álbum "${editedAlbum.titulo}" ACTUALIZADO exitosamente.'),
+                      backgroundColor: Colors.orange,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
               },
               color: Colors.orange,
             ),
             
-            // Botón 3: Eliminar álbum (Implementación real)
+            // Botón 3: Eliminar álbum (ya implementado)
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () async {
@@ -79,10 +104,8 @@ class AlbumListItem extends StatelessWidget {
                 );
                 
                 if (resultado == true) {
-                  // Si el usuario confirma, llamamos al callback
                   onDelete(album); 
                   
-                  // Mostramos el mensaje de éxito
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Álbum "${album.titulo}" ELIMINADO exitosamente.'),
@@ -91,7 +114,6 @@ class AlbumListItem extends StatelessWidget {
                     ),
                   );
                 } else if (resultado == false) {
-                  // El usuario canceló la eliminación
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Eliminación del álbum "${album.titulo}" CANCELADA.'),

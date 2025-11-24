@@ -1,60 +1,91 @@
 // lib/views/album_form.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necesario para TextInputFormatter
-import 'package:album_biblio/album.dart'; // Necesitamos el modelo Album
+import 'package:flutter/services.dart'; 
+import 'package:album_biblio/album.dart'; 
 
-// StatelessWidget para el Formulario
-class AlbumForm extends StatelessWidget {
-  // Clave global para identificar y manipular el widget Form
-  // ¡ES REQUERIDO POR EL DOCUMENTO DEL PROFESOR!
+// El formulario debe ser StatefulWidget para inicializar los campos
+class AlbumForm extends StatefulWidget {
+  // El formulario acepta un álbum opcional. Si es null, es Agregar. Si existe, es Editar.
+  final Album? albumToEdit; 
+
+  const AlbumForm({super.key, this.albumToEdit});
+
+  @override
+  State<AlbumForm> createState() => _AlbumFormState();
+}
+
+class _AlbumFormState extends State<AlbumForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Variables para almacenar los datos del formulario
-  String? _titulo;
-  String? _cantante;
-  int? _anio;
-  String? _genero;
-
-  AlbumForm({super.key});
+  late String _titulo;
+  late String _cantante;
+  late int _anio;
+  late String _genero;
+  
+  // Usamos initState para inicializar las variables con el álbum existente (si lo hay)
+  @override
+  void initState() {
+    super.initState();
+    // 1. Si estamos editando, usamos los datos del álbum existente
+    if (widget.albumToEdit != null) {
+      _titulo = widget.albumToEdit!.titulo;
+      _cantante = widget.albumToEdit!.cantante;
+      _anio = widget.albumToEdit!.anio;
+      _genero = widget.albumToEdit!.genero;
+    } else {
+      // 2. Si estamos agregando, inicializamos con valores vacíos (o predeterminados)
+      _titulo = '';
+      _cantante = '';
+      _anio = 0; // Usaremos 0 como un placeholder inicial
+      _genero = '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Definimos el texto del título basado en si estamos editando o agregando
+    final isEditing = widget.albumToEdit != null;
+    final titleText = isEditing ? "Editar Álbum" : "Agregar Nuevo Álbum";
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Agregar Nuevo Álbum"),
+        title: Text(titleText),
         backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
       ),
-      body: SingleChildScrollView( // Permite hacer scroll si el teclado cubre el formulario
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey, // Asignamos la llave global al widget Form
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               // --- 1. Campo Título ---
               TextFormField(
+                // Establece el valor inicial para el modo edición
+                initialValue: isEditing ? widget.albumToEdit!.titulo : null,
                 decoration: const InputDecoration(
                   labelText: 'Título del Álbum',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.album),
                 ),
-                // Validacion: No puede estar vacío
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, ingrese el título del álbum.';
                   }
-                  return null; // La validación es exitosa
+                  return null;
                 },
-                // Al guardar: Asigna el valor a la variable
                 onSaved: (value) {
-                  _titulo = value;
+                  _titulo = value!;
                 },
               ),
               const SizedBox(height: 20),
 
               // --- 2. Campo Cantante/Artista ---
               TextFormField(
+                // Establece el valor inicial para el modo edición
+                initialValue: isEditing ? widget.albumToEdit!.cantante : null,
                 decoration: const InputDecoration(
                   labelText: 'Cantante / Artista',
                   border: OutlineInputBorder(),
@@ -67,24 +98,24 @@ class AlbumForm extends StatelessWidget {
                   return null;
                 },
                 onSaved: (value) {
-                  _cantante = value;
+                  _cantante = value!;
                 },
               ),
               const SizedBox(height: 20),
 
               // --- 3. Campo Año ---
               TextFormField(
+                // Establece el valor inicial para el modo edición (convertido a String)
+                initialValue: isEditing ? widget.albumToEdit!.anio.toString() : null,
                 decoration: const InputDecoration(
                   labelText: 'Año de Lanzamiento',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.calendar_today),
                 ),
-                // Solo permite números
                 keyboardType: TextInputType.number,
                 inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly, // Solo acepta dígitos
+                  FilteringTextInputFormatter.digitsOnly, 
                 ],
-                // Validacion: Debe ser un número válido de 4 dígitos (simple)
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ingrese un año.';
@@ -95,14 +126,15 @@ class AlbumForm extends StatelessWidget {
                   return null;
                 },
                 onSaved: (value) {
-                  // Guardar el valor como entero (int)
-                  _anio = int.tryParse(value!);
+                  _anio = int.parse(value!); // Usamos parse porque ya validamos
                 },
               ),
               const SizedBox(height: 20),
 
               // --- 4. Campo Género ---
               TextFormField(
+                // Establece el valor inicial para el modo edición
+                initialValue: isEditing ? widget.albumToEdit!.genero : null,
                 decoration: const InputDecoration(
                   labelText: 'Género Musical',
                   border: OutlineInputBorder(),
@@ -115,7 +147,7 @@ class AlbumForm extends StatelessWidget {
                   return null;
                 },
                 onSaved: (value) {
-                  _genero = value;
+                  _genero = value!;
                 },
               ),
               const SizedBox(height: 40),
@@ -123,25 +155,24 @@ class AlbumForm extends StatelessWidget {
               // --- Botón de Guardar ---
               ElevatedButton.icon(
                 onPressed: () {
-                  // 1. Validar el formulario usando la clave
                   if (_formKey.currentState!.validate()) {
-                    // 2. Si es válido, guardar los datos en las variables
                     _formKey.currentState!.save();
                     
-                    // 3. Crear el nuevo objeto Album
-                    final newAlbum = Album(
-                      titulo: _titulo!,
-                      cantante: _cantante!,
-                      anio: _anio!,
-                      genero: _genero!,
+                    // Creamos el álbum, ya sea nuevo o con los datos actualizados
+                    final savedAlbum = Album(
+                      titulo: _titulo,
+                      cantante: _cantante,
+                      anio: _anio,
+                      genero: _genero,
                     );
                     
-                    // 4. Regresar el nuevo álbum a la pantalla anterior (AlbumList)
-                    Navigator.pop(context, newAlbum);
+                    // Regresamos el álbum guardado a la pantalla anterior (AlbumList)
+                    // Nota: No distinguimos entre nuevo o editado aquí; AlbumList lo hará.
+                    Navigator.pop(context, savedAlbum);
                   }
                 },
                 icon: const Icon(Icons.save),
-                label: const Text('Guardar Álbum'),
+                label: Text(isEditing ? 'Guardar Cambios' : 'Guardar Nuevo Álbum'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -153,7 +184,7 @@ class AlbumForm extends StatelessWidget {
               // --- Botón de Cancelar ---
               OutlinedButton.icon(
                 onPressed: () {
-                  // Regresa 'null' para indicar que no se agregó nada
+                  // Regresa 'null' para indicar que no se agregó ni se editó nada
                   Navigator.pop(context, null); 
                 },
                 icon: const Icon(Icons.cancel),
